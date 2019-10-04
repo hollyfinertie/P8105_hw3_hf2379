@@ -1,0 +1,39 @@
+---
+title: "HW3 - Visualization"
+author: "Holly Finertie"
+date: "10/14/2019"
+output: github_document
+---
+
+
+# Problem1
+
+```{r}
+library(tidyverse)
+library(p8105.datasets)
+data("instacart")
+```
+
+
+## Description of Instacart Data Set: 
+
+This data set contains `r instacart %>% nrow()` observations and `r instacart %>% ncol()` variables describing order information like time and day order was placed, products ordered, aisle where products are located, and days since last order was placed per user id. For example, the individual with user id 5 ordered `r instacart %>% filter(user_id == 5) %>% summarize(max(add_to_cart_order))` items of which most were from the `r instacart %>% filter(user_id == 5) %>% summarize(max(department))` department. They placed this order `r instacart %>% filter(user_id == 5) %>% summarize(median(days_since_prior_order))` days after their last order. 
+
+In total, there are `r instacart %>% select(aisle) %>% n_distinct()` aisles and the most items are ordered from the `r instacart %>% count(aisle,name="n_aisle") %>% mutate(max_aisle = min_rank(desc(n_aisle))) %>% filter(max_aisle == 1) %>% summarize(aisle)`. 
+
+```{r}
+plot_aisles = instacart %>% 
+  count(aisle, name = "n_aisle") %>% 
+  filter(n_aisle > 10000) %>% 
+  arrange(n_aisle) %>% 
+  ggplot(aes(x = aisle, y = n_aisle), color = aisle) +
+  geom_point()
+
+plot_aisles 
+```
+
+
+
+
+
+
