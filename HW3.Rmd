@@ -25,11 +25,23 @@ In total, there are `r instacart %>% select(aisle) %>% n_distinct()` aisles and 
 plot_aisles = instacart %>% 
   count(aisle, name = "n_aisle") %>% 
   filter(n_aisle > 10000) %>% 
-  arrange(n_aisle) %>% 
-  ggplot(aes(x = aisle, y = n_aisle), color = aisle) +
-  geom_point()
+  arrange(desc(aisle)) %>% 
+  mutate(
+    aisle = str_to_title(aisle)
+  ) %>% 
+  ggplot(aes(x = aisle, y = n_aisle)) +
+  geom_bar(stat ="identity") + 
+  geom_text(aes(label = n_aisle), hjust=-0.05, size = 1.5) +
+  labs(
+    title = "Number of Items Ordered in Aisles",
+    x = "Aisle Name",
+    y = "Total Items Ordered",
+    caption = "Data from instacart") +
+  scale_y_continuous(limits = c(0, 160000)) +
+  theme(text = element_text(size=7))
+  
 
-plot_aisles 
+plot_aisles + coord_flip()
 ```
 
 
