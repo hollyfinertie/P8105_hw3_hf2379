@@ -92,3 +92,36 @@ top3_products
 | packaged vegetables fruits | Organic Baby Spinach                          |       9784 |
 | packaged vegetables fruits | Organic Blueberries                           |       4966 |
 | packaged vegetables fruits | Organic Raspberries                           |       5546 |
+
+## Pink Ladies and Coffee Ice Cream
+
+``` r
+dow_vector = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
+
+apples_and_cream = instacart %>% 
+  filter(product_name == "Pink Lady Apples" | product_name == "Coffee Ice Cream") %>% 
+  group_by(order_dow) %>% 
+  summarize(mean_hour_ordered = mean(order_hour_of_day)) %>% 
+  mutate(day_of_week = recode(order_dow, 
+         `0` = "Monday", 
+         `1` = "Tuesday", 
+         `2` = "Wednesday", 
+         `3` = "Thursday",
+         `4` = "Friday", 
+         `5` = "Saturday",
+         `6` = "Sunday")) %>% 
+  select(day_of_week, mean_hour_ordered) %>% 
+  knitr::kable()
+
+apples_and_cream
+```
+
+| day\_of\_week | mean\_hour\_ordered |
+| :------------ | ------------------: |
+| Monday        |            13.60000 |
+| Tuesday       |            12.17391 |
+| Wednesday     |            12.83824 |
+| Thursday      |            14.68519 |
+| Friday        |            13.17308 |
+| Saturday      |            12.64286 |
+| Sunday        |            13.25000 |
