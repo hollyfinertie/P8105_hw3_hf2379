@@ -21,6 +21,9 @@ This data set contains `r instacart %>% nrow()` observations and `r instacart %>
 
 In total, there are `r instacart %>% select(aisle) %>% n_distinct()` aisles and the most items are ordered from the `r instacart %>% count(aisle,name="n_aisle") %>% mutate(max_aisle = min_rank(desc(n_aisle))) %>% filter(max_aisle == 1) %>% summarize(aisle)`. 
 
+
+## Plot of Items Ordered
+
 ```{r}
 plot_aisles = instacart %>% 
   count(aisle, name = "n_aisle") %>% 
@@ -44,7 +47,23 @@ plot_aisles = instacart %>%
 plot_aisles + coord_flip()
 ```
 
+## Most Popular Items in Each Row
 
+```{r}
+
+top3_products = instacart %>% 
+  select(aisle, product_name) %>% 
+  filter(
+    aisle == "baking ingredients" | 
+    aisle == "dog food care" | 
+    aisle == "packaged vegetables fruits") %>% 
+  group_by(aisle) %>% 
+  count(product_name, name = "n_product") %>% 
+  filter(min_rank(desc(n_product)) < 4) %>% 
+  knitr::kable()
+
+top3_products
+```
 
 
 
