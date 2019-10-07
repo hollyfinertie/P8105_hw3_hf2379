@@ -96,8 +96,6 @@ top3_products
 ## Pink Ladies and Coffee Ice Cream
 
 ``` r
-dow_vector = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
-
 apples_and_cream = instacart %>% 
   filter(product_name == "Pink Lady Apples" | product_name == "Coffee Ice Cream") %>% 
   group_by(order_dow) %>% 
@@ -125,3 +123,15 @@ apples_and_cream
 | Friday        |            13.17308 |
 | Saturday      |            12.64286 |
 | Sunday        |            13.25000 |
+
+# Problem 2
+
+``` r
+library(p8105.datasets)
+data("brfss_smart2010")
+
+brfss_smart2010 = brfss_smart2010 %>% 
+  janitor::clean_names() %>% 
+  filter(topic == "Overall Health" & response != "Very good") %>% 
+  mutate(response_factor = factor(response, ordered = TRUE, levels = c("Poor","Good", "Fair", "Excellent" )))
+```
