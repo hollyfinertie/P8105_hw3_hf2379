@@ -96,6 +96,36 @@ data("brfss_smart2010")
 brfss_smart2010 = brfss_smart2010 %>% 
   janitor::clean_names() %>% 
   filter(topic == "Overall Health" & response != "Very good") %>% 
-  mutate(response_factor = factor(response, ordered = TRUE, levels = c("Poor","Good", "Fair", "Excellent" )))
+  mutate(response = factor(response, ordered = TRUE, levels = c("Poor","Good", "Fair", "Excellent" )))
 ```
+
+## 2010 and 2002 states
+
+```{r}
+states_2002 = brfss_smart2010 %>% 
+  filter(year == 2002) %>% 
+  group_by(locationabbr) %>% 
+  summarize(n_location = n_distinct(locationdesc)) %>% 
+  filter(n_location >= 7) %>% 
+  knitr::kable()
+
+states_2002
+
+states_2010 = brfss_smart2010 %>% 
+  filter(year == 2010) %>% 
+  group_by(locationabbr) %>% 
+  summarize(n_location = n_distinct(locationdesc)) %>% 
+  filter(n_location >= 7) %>% 
+  knitr::kable()
+
+states_2010
+```
+
+
+
+
+
+
+
+
 

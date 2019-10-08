@@ -133,5 +133,55 @@ data("brfss_smart2010")
 brfss_smart2010 = brfss_smart2010 %>% 
   janitor::clean_names() %>% 
   filter(topic == "Overall Health" & response != "Very good") %>% 
-  mutate(response_factor = factor(response, ordered = TRUE, levels = c("Poor","Good", "Fair", "Excellent" )))
+  mutate(response = factor(response, ordered = TRUE, levels = c("Poor","Good", "Fair", "Excellent" )))
 ```
+
+## 2010 and 2002 states
+
+``` r
+states_2002 = brfss_smart2010 %>% 
+  filter(year == 2002) %>% 
+  group_by(locationabbr) %>% 
+  summarize(n_location = n_distinct(locationdesc)) %>% 
+  filter(n_location >= 7) %>% 
+  knitr::kable()
+
+states_2002
+```
+
+| locationabbr | n\_location |
+| :----------- | ----------: |
+| CT           |           7 |
+| FL           |           7 |
+| MA           |           8 |
+| NC           |           7 |
+| NJ           |           8 |
+| PA           |          10 |
+
+``` r
+states_2010 = brfss_smart2010 %>% 
+  filter(year == 2010) %>% 
+  group_by(locationabbr) %>% 
+  summarize(n_location = n_distinct(locationdesc)) %>% 
+  filter(n_location >= 7) %>% 
+  knitr::kable()
+
+states_2010
+```
+
+| locationabbr | n\_location |
+| :----------- | ----------: |
+| CA           |          12 |
+| CO           |           7 |
+| FL           |          41 |
+| MA           |           9 |
+| MD           |          12 |
+| NC           |          12 |
+| NE           |          10 |
+| NJ           |          19 |
+| NY           |           9 |
+| OH           |           8 |
+| PA           |           7 |
+| SC           |           7 |
+| TX           |          16 |
+| WA           |          10 |
