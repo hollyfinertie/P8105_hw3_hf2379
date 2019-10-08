@@ -9,14 +9,14 @@ Holly Finertie
 library(tidyverse)
 ```
 
-    ## ── Attaching packages ──────────────────────────────────────────────────────────────── tidyverse 1.2.1 ──
+    ## ── Attaching packages ────────────────────────────────────────────────── tidyverse 1.2.1 ──
 
     ## ✔ ggplot2 3.2.1     ✔ purrr   0.3.2
     ## ✔ tibble  2.1.3     ✔ dplyr   0.8.3
     ## ✔ tidyr   1.0.0     ✔ stringr 1.4.0
     ## ✔ readr   1.3.1     ✔ forcats 0.4.0
 
-    ## ── Conflicts ─────────────────────────────────────────────────────────────────── tidyverse_conflicts() ──
+    ## ── Conflicts ───────────────────────────────────────────────────── tidyverse_conflicts() ──
     ## ✖ dplyr::filter() masks stats::filter()
     ## ✖ dplyr::lag()    masks stats::lag()
 
@@ -132,8 +132,8 @@ data("brfss_smart2010")
 
 brfss_smart2010 = brfss_smart2010 %>% 
   janitor::clean_names() %>% 
-  filter(topic == "Overall Health" & response != "Very good") %>% 
-  mutate(response = factor(response, ordered = TRUE, levels = c("Poor","Good", "Fair", "Excellent" )))
+  filter(topic == "Overall Health") %>% 
+  mutate(response = factor(response, ordered = TRUE, levels = c("Poor", "Fair","Good", "Very good", "Excellent" )))
 ```
 
 ## 2002 states
@@ -204,3 +204,18 @@ brfss_excellent
 ```
 
 ![](HW3_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
+
+## Distribution of Data Values in NY
+
+``` r
+brfss_ny_state = brfss_smart2010 %>% 
+  filter((year == 2010 | year == 2006) & locationabbr == "NY") %>% 
+  ggplot(aes(x = locationdesc, y = data_value, fill = response)) + 
+  geom_bar(stat = "identity", position = "dodge") +
+  facet_grid(~year) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+brfss_ny_state
+```
+
+![](HW3_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->
