@@ -136,7 +136,7 @@ brfss_smart2010 = brfss_smart2010 %>%
   mutate(response = factor(response, ordered = TRUE, levels = c("Poor","Good", "Fair", "Excellent" )))
 ```
 
-## 2010 and 2002 states
+## 2002 states
 
 ``` r
 states_2002 = brfss_smart2010 %>% 
@@ -157,6 +157,8 @@ states_2002
 | NC           |           7 |
 | NJ           |           8 |
 | PA           |          10 |
+
+## 2010 states
 
 ``` r
 states_2010 = brfss_smart2010 %>% 
@@ -185,3 +187,20 @@ states_2010
 | SC           |           7 |
 | TX           |          16 |
 | WA           |          10 |
+
+## Excellent Response
+
+``` r
+brfss_excellent = brfss_smart2010  %>% 
+  filter(topic == "Overall Health" & response == "Excellent") %>% 
+  group_by(year, locationabbr) %>% 
+  mutate(mean_value = mean(data_value, na.rm = TRUE)) %>% 
+  select(year, locationabbr, mean_value) %>% 
+  distinct() %>% 
+  ggplot(aes(x = year, y = mean_value)) +
+  geom_line(aes(group = locationabbr))
+
+brfss_excellent
+```
+
+![](HW3_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
