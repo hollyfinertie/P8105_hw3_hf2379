@@ -17,7 +17,7 @@ data("instacart")
 
 ### Description of Instacart Data Set: 
 
-This data set contains `r instacart %>% nrow()` observations and `r instacart %>% ncol()` variables describing order information like time and day order was placed, products ordered, aisle where products are located, and days since last order was placed per user id. For example, the individual with user id 5 ordered `r instacart %>% filter(user_id == 5) %>% summarize(max(add_to_cart_order))` items of which most were from the `r instacart %>% filter(user_id == 5) %>% summarize(max(department))` department. They placed this order `r instacart %>% filter(user_id == 5) %>% summarize(median(days_since_prior_order))` days after their last order. 
+This data set contains ``r instacart %>% nrow()` observations` and ``r instacart %>% ncol()` variables` describing order information like time and day order was placed, products ordered, aisle where products are located, and days since last order was placed per user id. For example, the individual with user id 5 ordered `r instacart %>% filter(user_id == 5) %>% summarize(max(add_to_cart_order))` items of which most were from the `r instacart %>% filter(user_id == 5) %>% summarize(max(department))` department. They placed this order `r instacart %>% filter(user_id == 5) %>% summarize(median(days_since_prior_order))` days after their last order. 
 
 In total, there are `r instacart %>% select(aisle) %>% n_distinct()` aisles and the most items are ordered from the `r instacart %>% count(aisle,name="n_aisle") %>% mutate(max_aisle = min_rank(desc(n_aisle))) %>% filter(max_aisle == 1) %>% summarize(aisle)`. 
 
@@ -28,7 +28,7 @@ In total, there are `r instacart %>% select(aisle) %>% n_distinct()` aisles and 
 plot_aisles = instacart %>% 
   count(aisle, name = "n_aisle") %>% 
   filter(n_aisle > 10000) %>% 
-  arrange((aisle)) %>% 
+  arrange((n_aisle)) %>% 
   ggplot(aes(x = aisle, y = n_aisle)) +
   geom_bar(stat = "identity") + 
   geom_text(aes(label = n_aisle), hjust = -0.05, size = 1.5) +
@@ -55,12 +55,16 @@ top3_products = instacart %>%
   group_by(aisle) %>% 
   count(product_name, name = "n_product") %>% 
   filter(min_rank(desc(n_product)) < 4) %>% 
-  mutate(product_name = str_to_lower(product_name)) %>% 
+  arrange(desc(n_product)) %>%
+  mutate(
+    product_name = str_to_lower(product_name), 
+    "Rank" = row_number()) %>%
   rename(
     "Aisle Name" = aisle,
     "Product Name" = product_name, 
     "Count" = n_product
   ) %>% 
+  select( "Rank", everything()) %>% 
   knitr::kable()
 
 top3_products
@@ -217,7 +221,7 @@ This data set contains `r accel_data %>% nrow()` observations and `r accel_data 
 
 ```{r}
 total_activity = accel_data %>% 
-  group_by(day_id,) %>% 
+  group_by(day_id) %>% 
   summarize("Total Activity" = sum(activity_count)) %>% 
   ungroup(day_id) %>% 
   rename("Day" = day_id) %>% 
@@ -232,12 +236,13 @@ total_activity
 
 ```{r}
 activity_plot = accel_data %>% 
-ggplot(aes(x = activity_minute, y = activity_count)) +
-  geom_point(aes(color = day), alpha = 0.5) +
+  group_by(activity_minute, day) %>% 
+  summarize(mean_activity = mean(activity_count)) %>% 
+ggplot(aes(x = activity_minute, y = mean_activity)) +
+  geom_line(aes(color = day), alpha = 0.5) +
   geom_smooth(se = FALSE, alpha = 0.5) +
   labs(
-    title = "Activity Counts for Mintes in 24-hour Period 
-    (starting at midnight)",
+    title = "Activity Counts for Mintes in 24-hour Period",
     x = "Minute",
     y = "Activity Count",
     caption = "Data from the Advanced Cardiac Care 
