@@ -25,7 +25,7 @@ library(p8105.datasets)
 data("instacart")
 ```
 
-## Description of Instacart Data Set:
+### Description of Instacart Data Set:
 
 This data set contains 1384617 observations and 15 variables describing
 order information like time and day order was placed, products ordered,
@@ -37,15 +37,13 @@ days after their last order.
 In total, there are 134 aisles and the most items are ordered from the
 fresh vegetables.
 
-## Plot of Items Ordered
+### Plot of Items Ordered
 
 ``` r
 plot_aisles = instacart %>% 
   count(aisle, name = "n_aisle") %>% 
   filter(n_aisle > 10000) %>% 
   arrange((aisle)) %>% 
-  mutate(
-    aisle = str_to_title(aisle)) %>% 
   ggplot(aes(x = aisle, y = n_aisle)) +
   geom_bar(stat = "identity") + 
   geom_text(aes(label = n_aisle), hjust = -0.05, size = 1.5) +
@@ -62,7 +60,7 @@ plot_aisles + coord_flip()
 
 ![](HW3_files/figure-gfm/unnamed-chunk-2-1.png)<!-- -->
 
-## Most Popular Items in Each Row
+### Most Popular Items in Each Aisle Row
 
 ``` r
 top3_products = instacart %>% 
@@ -74,6 +72,7 @@ top3_products = instacart %>%
   group_by(aisle) %>% 
   count(product_name, name = "n_product") %>% 
   filter(min_rank(desc(n_product)) < 4) %>% 
+  mutate(product_name = str_to_lower(product_name)) %>% 
   rename(
     "Aisle Name" = aisle,
     "Product Name" = product_name, 
@@ -86,17 +85,17 @@ top3_products
 
 | Aisle Name                 | Product Name                                  | Count |
 | :------------------------- | :-------------------------------------------- | ----: |
-| baking ingredients         | Cane Sugar                                    |   336 |
-| baking ingredients         | Light Brown Sugar                             |   499 |
-| baking ingredients         | Pure Baking Soda                              |   387 |
-| dog food care              | Organix Chicken & Brown Rice Recipe           |    28 |
-| dog food care              | Small Dog Biscuits                            |    26 |
-| dog food care              | Snack Sticks Chicken & Rice Recipe Dog Treats |    30 |
-| packaged vegetables fruits | Organic Baby Spinach                          |  9784 |
-| packaged vegetables fruits | Organic Blueberries                           |  4966 |
-| packaged vegetables fruits | Organic Raspberries                           |  5546 |
+| baking ingredients         | cane sugar                                    |   336 |
+| baking ingredients         | light brown sugar                             |   499 |
+| baking ingredients         | pure baking soda                              |   387 |
+| dog food care              | organix chicken & brown rice recipe           |    28 |
+| dog food care              | small dog biscuits                            |    26 |
+| dog food care              | snack sticks chicken & rice recipe dog treats |    30 |
+| packaged vegetables fruits | organic baby spinach                          |  9784 |
+| packaged vegetables fruits | organic blueberries                           |  4966 |
+| packaged vegetables fruits | organic raspberries                           |  5546 |
 
-## Pink Ladies and Coffee Ice Cream
+### Mean Time of Day Pink Lady Apples and Coffee Ice Cream Are Ordered by Day
 
 ``` r
 apples_and_cream = instacart %>% 
@@ -134,6 +133,8 @@ apples_and_cream
 
 # Problem 2
 
+### Data Cleaning
+
 ``` r
 library(p8105.datasets)
 data("brfss_smart2010")
@@ -144,7 +145,7 @@ brfss_smart2010 = brfss_smart2010 %>%
   mutate(response = forcats::fct_relevel(response, c("Poor", "Fair","Good", "Very good", "Excellent")))
 ```
 
-## 2002 states
+### States with 7 or More Observed Locations (2002 and 2010)
 
 ``` r
 states_2002 = brfss_smart2010 %>% 
@@ -170,7 +171,10 @@ states_2002
 | NJ    |                   8 |
 | PA    |                  10 |
 
-## 2010 states
+  - Connecticut, Florida, Massachusetts, North Carolina, New Jersey and
+    Pennsylvania had 7 or more locations in 2002.
+
+<!-- end list -->
 
 ``` r
 states_2010 = brfss_smart2010 %>% 
@@ -204,7 +208,11 @@ states_2010
 | TX    |                  16 |
 | WA    |                  10 |
 
-## Excellent Response
+  - California, Colorado, Florida, Massachusetts, Maryland, North
+    Carolina, Nebraska, New Jersey, New York, Ohio, Pennsylvania, South
+    Carolina, Texas, and Washington had 7 or more locations in 2010.
+
+### Spaghetti Plot: Average Data Value Over Time by State
 
 ``` r
 brfss_excellent = brfss_smart2010  %>% 
@@ -215,14 +223,20 @@ brfss_excellent = brfss_smart2010  %>%
   select(year, locationabbr, mean_value) %>% 
   distinct() %>% 
   ggplot(aes(x = year, y = mean_value)) +
-  geom_line(aes(group = locationabbr, color = locationabbr))
+  geom_line(aes(group = locationabbr, color = locationabbr)) +
+  labs(
+    title = "Average Data Value by State and Year for Excellent Responses",
+    x = "Year",
+    y = "Average Data Value",
+    caption = "Data from BRFSS") +
+  scale_color_hue(name = "State")
 
 brfss_excellent
 ```
 
 ![](HW3_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
 
-## Distribution of Data Values in NY
+### 2 Panel Plot for Distribution of Data Values in NY by 2006 and 2010
 
 ``` r
 brfss_ny_state = brfss_smart2010 %>% 
@@ -230,7 +244,14 @@ brfss_ny_state = brfss_smart2010 %>%
   ggplot(aes(x = locationdesc, y = data_value, fill = response)) + 
   geom_bar(stat = "identity", position = "dodge") +
   facet_grid(~year) +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) + 
+  labs(
+    title = "Distribution of Data Values in NY",
+    x = "NY County",
+    y = "Data Value",
+    caption = "Data from BRFSS") +
+  scale_color_hue(name = "Response Category")
+  
 
 brfss_ny_state
 ```
@@ -239,6 +260,8 @@ brfss_ny_state
 
 # Problem 3
 
+### Data Tidying
+
 ``` r
 accel_data = read_csv("./data/accel_data.csv") %>% 
   janitor::clean_names() %>% 
@@ -246,9 +269,15 @@ accel_data = read_csv("./data/accel_data.csv") %>%
     activity_1:activity_1440, 
     names_to = "activity_minute", 
     values_to = "activity_count") %>% 
-  mutate(day_type = case_when(
+  separate(
+    activity_minute, 
+    into = c("activity", "activity_minute"), sep = 9) %>% 
+  mutate(
+    day_type = case_when(
           (day == "Saturday" | day == "Sunday") ~ "Weekend", 
-          TRUE ~ "Weekday"))
+          TRUE ~ "Weekday"), 
+    activity_minute = as.integer(activity_minute)) %>% 
+  select(-activity)
 ```
 
     ## Parsed with column specification:
@@ -258,3 +287,90 @@ accel_data = read_csv("./data/accel_data.csv") %>%
     ## )
 
     ## See spec(...) for full column specifications.
+
+### Describe Data Set
+
+This data set contains 50400 observations and 6 variables describing
+five weeks of accelerometer data collected on a 63 year-old male with
+BMI 25, who was diagnosed with congestive heart failure (CHF). Variables
+include information on acitivity count `(activity_count)` for every
+minute `(activity_minute)` in a 24 hour period by day `(day_id)` for 5
+weeks.
+
+### Total Activity by Day
+
+``` r
+total_activity = accel_data %>% 
+  group_by(day_id,) %>% 
+  summarize("Total Activity" = sum(activity_count)) %>% 
+  ungroup(day_id) %>% 
+  rename("Day" = day_id) %>% 
+  knitr::kable()
+
+total_activity
+```
+
+| Day | Total Activity |
+| --: | -------------: |
+|   1 |      480542.62 |
+|   2 |       78828.07 |
+|   3 |      376254.00 |
+|   4 |      631105.00 |
+|   5 |      355923.64 |
+|   6 |      307094.24 |
+|   7 |      340115.01 |
+|   8 |      568839.00 |
+|   9 |      295431.00 |
+|  10 |      607175.00 |
+|  11 |      422018.00 |
+|  12 |      474048.00 |
+|  13 |      423245.00 |
+|  14 |      440962.00 |
+|  15 |      467420.00 |
+|  16 |      685910.00 |
+|  17 |      382928.00 |
+|  18 |      467052.00 |
+|  19 |      371230.00 |
+|  20 |      381507.00 |
+|  21 |      468869.00 |
+|  22 |      154049.00 |
+|  23 |      409450.00 |
+|  24 |        1440.00 |
+|  25 |      260617.00 |
+|  26 |      340291.00 |
+|  27 |      319568.00 |
+|  28 |      434460.00 |
+|  29 |      620860.00 |
+|  30 |      389080.00 |
+|  31 |        1440.00 |
+|  32 |      138421.00 |
+|  33 |      549658.00 |
+|  34 |      367824.00 |
+|  35 |      445366.00 |
+
+  - I would argue that there are no apparent trends across the total
+    activity for 35 days.
+
+### Total Activity over the course of a Day
+
+``` r
+activity_plot = accel_data %>% 
+ggplot(aes(x = activity_minute, y = activity_count)) +
+  geom_point(aes(color = day), alpha = 0.5) +
+  geom_smooth(se = FALSE, alpha = 0.5) +
+  labs(
+    title = "Activity Counts for Mintes in 24-hour Period 
+    (starting at midnight)",
+    x = "Minute",
+    y = "Activity Count",
+    caption = "Data from the Advanced Cardiac Care 
+    Center of Columbia University Medical Center"
+  ) +
+  scale_color_hue(name = "Day of Week")
+
+activity_plot
+```
+
+    ## `geom_smooth()` using method = 'gam' and formula 'y ~ s(x, bs = "cs")'
+
+![](HW3_files/figure-gfm/unnamed-chunk-12-1.png)<!-- -->

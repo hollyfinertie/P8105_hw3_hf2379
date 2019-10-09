@@ -15,22 +15,20 @@ data("instacart")
 ```
 
 
-## Description of Instacart Data Set: 
+### Description of Instacart Data Set: 
 
 This data set contains `r instacart %>% nrow()` observations and `r instacart %>% ncol()` variables describing order information like time and day order was placed, products ordered, aisle where products are located, and days since last order was placed per user id. For example, the individual with user id 5 ordered `r instacart %>% filter(user_id == 5) %>% summarize(max(add_to_cart_order))` items of which most were from the `r instacart %>% filter(user_id == 5) %>% summarize(max(department))` department. They placed this order `r instacart %>% filter(user_id == 5) %>% summarize(median(days_since_prior_order))` days after their last order. 
 
 In total, there are `r instacart %>% select(aisle) %>% n_distinct()` aisles and the most items are ordered from the `r instacart %>% count(aisle,name="n_aisle") %>% mutate(max_aisle = min_rank(desc(n_aisle))) %>% filter(max_aisle == 1) %>% summarize(aisle)`. 
 
 
-## Plot of Items Ordered
+### Plot of Items Ordered
 
 ```{r}
 plot_aisles = instacart %>% 
   count(aisle, name = "n_aisle") %>% 
   filter(n_aisle > 10000) %>% 
   arrange((aisle)) %>% 
-  mutate(
-    aisle = str_to_title(aisle)) %>% 
   ggplot(aes(x = aisle, y = n_aisle)) +
   geom_bar(stat = "identity") + 
   geom_text(aes(label = n_aisle), hjust = -0.05, size = 1.5) +
@@ -45,10 +43,9 @@ plot_aisles = instacart %>%
 plot_aisles + coord_flip()
 ```
 
-## Most Popular Items in Each Row
+### Most Popular Items in Each Aisle Row
 
 ```{r}
-
 top3_products = instacart %>% 
   select(aisle, product_name) %>% 
   filter(
@@ -58,6 +55,7 @@ top3_products = instacart %>%
   group_by(aisle) %>% 
   count(product_name, name = "n_product") %>% 
   filter(min_rank(desc(n_product)) < 4) %>% 
+  mutate(product_name = str_to_lower(product_name)) %>% 
   rename(
     "Aisle Name" = aisle,
     "Product Name" = product_name, 
@@ -69,7 +67,7 @@ top3_products
 ```
 
 
-## Pink Ladies and Coffee Ice Cream
+### Mean Time of Day Pink Lady Apples and Coffee Ice Cream Are Ordered by Day
 
 ```{r}
 apples_and_cream = instacart %>% 
@@ -97,6 +95,8 @@ apples_and_cream
 
 # Problem 2
 
+### Data Cleaning 
+
 ```{r}
 library(p8105.datasets)
 data("brfss_smart2010")
@@ -107,7 +107,7 @@ brfss_smart2010 = brfss_smart2010 %>%
   mutate(response = forcats::fct_relevel(response, c("Poor", "Fair","Good", "Very good", "Excellent")))
 ```
 
-## 2002 states
+### States with 7 or More Observed Locations (2002 and 2010)
 
 ```{r}
 states_2002 = brfss_smart2010 %>% 
@@ -124,7 +124,7 @@ states_2002 = brfss_smart2010 %>%
 states_2002
 ```
 
-## 2010 states
+* Connecticut, Florida, Massachusetts, North Carolina, New Jersey and Pennsylvania had 7 or more locations in 2002. 
 
 ```{r}
 states_2010 = brfss_smart2010 %>% 
@@ -141,7 +141,9 @@ states_2010 = brfss_smart2010 %>%
 states_2010
 ```
 
-## Excellent Response
+* California, Colorado, Florida, Massachusetts, Maryland, North Carolina, Nebraska, New Jersey, New York, Ohio, Pennsylvania, South Carolina, Texas, and Washington had 7 or more locations in 2010. 
+
+### Spaghetti Plot: Average Data Value Over Time by State
 
 ```{r}
 brfss_excellent = brfss_smart2010  %>% 
@@ -152,13 +154,19 @@ brfss_excellent = brfss_smart2010  %>%
   select(year, locationabbr, mean_value) %>% 
   distinct() %>% 
   ggplot(aes(x = year, y = mean_value)) +
-  geom_line(aes(group = locationabbr, color = locationabbr))
+  geom_line(aes(group = locationabbr, color = locationabbr)) +
+  labs(
+    title = "Average Data Value by State and Year for Excellent Responses",
+    x = "Year",
+    y = "Average Data Value",
+    caption = "Data from BRFSS") +
+  scale_color_hue(name = "State")
 
 brfss_excellent
 ```
 
 
-## Distribution of Data Values in NY
+### 2 Panel Plot for Distribution of Data Values in NY by 2006 and 2010
 
 ```{r}
 brfss_ny_state = brfss_smart2010 %>% 
@@ -166,7 +174,14 @@ brfss_ny_state = brfss_smart2010 %>%
   ggplot(aes(x = locationdesc, y = data_value, fill = response)) + 
   geom_bar(stat = "identity", position = "dodge") +
   facet_grid(~year) +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) + 
+  labs(
+    title = "Distribution of Data Values in NY",
+    x = "NY County",
+    y = "Data Value",
+    caption = "Data from BRFSS") +
+  scale_color_hue(name = "Response Category")
+  
 
 brfss_ny_state
 ```
@@ -174,6 +189,7 @@ brfss_ny_state
 
 # Problem 3
 
+### Data Tidying
 
 ```{r}
 accel_data = read_csv("./data/accel_data.csv") %>% 
@@ -182,13 +198,55 @@ accel_data = read_csv("./data/accel_data.csv") %>%
     activity_1:activity_1440, 
     names_to = "activity_minute", 
     values_to = "activity_count") %>% 
-  mutate(day_type = case_when(
+  separate(
+    activity_minute, 
+    into = c("activity", "activity_minute"), sep = 9) %>% 
+  mutate(
+    day_type = case_when(
           (day == "Saturday" | day == "Sunday") ~ "Weekend", 
-          TRUE ~ "Weekday"))
+          TRUE ~ "Weekday"), 
+    activity_minute = as.integer(activity_minute)) %>% 
+  select(-activity)
 ```
 
+### Describe Data Set
 
+This data set contains `r accel_data %>% nrow()` observations and `r accel_data %>% ncol()` variables describing five weeks of accelerometer data collected on a 63 year-old male with BMI 25, who was diagnosed with congestive heart failure (CHF). Variables include information on acitivity count `(activity_count)` for every minute `(activity_minute)` in a 24 hour period by day `(day_id)` for 5 weeks. 
 
+### Total Activity by Day
+
+```{r}
+total_activity = accel_data %>% 
+  group_by(day_id,) %>% 
+  summarize("Total Activity" = sum(activity_count)) %>% 
+  ungroup(day_id) %>% 
+  rename("Day" = day_id) %>% 
+  knitr::kable()
+
+total_activity
+```
+
+* I would argue that there are no apparent trends across the total activity for 35 days. 
+
+### Total Activity over the course of a Day
+
+```{r}
+activity_plot = accel_data %>% 
+ggplot(aes(x = activity_minute, y = activity_count)) +
+  geom_point(aes(color = day), alpha = 0.5) +
+  geom_smooth(se = FALSE, alpha = 0.5) +
+  labs(
+    title = "Activity Counts for Mintes in 24-hour Period 
+    (starting at midnight)",
+    x = "Minute",
+    y = "Activity Count",
+    caption = "Data from the Advanced Cardiac Care 
+    Center of Columbia University Medical Center"
+  ) +
+  scale_color_hue(name = "Day of Week")
+
+activity_plot
+```
 
 
 
