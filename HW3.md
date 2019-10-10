@@ -34,8 +34,8 @@ order was placed per user id. For example, the individual with user id 5
 ordered 9 items of which most were from the produce department. They
 placed this order 6 days after their last order.
 
-In total, there are 134 aisles and the most items are ordered from the
-fresh vegetables.
+In total, there are `134 aisles` and the most ordered items are from the
+`fresh vegetables aisle`.
 
 ### Plot of Items Ordered
 
@@ -44,7 +44,7 @@ plot_aisles = instacart %>%
   count(aisle, name = "n_aisle") %>% 
   filter(n_aisle > 10000) %>% 
   arrange((n_aisle)) %>% 
-  ggplot(aes(x = aisle, y = n_aisle)) +
+  ggplot(aes(x = reorder(aisle, -n_aisle), y = n_aisle)) +
   geom_bar(stat = "identity") + 
   geom_text(aes(label = n_aisle), hjust = -0.05, size = 1.5) +
   labs(
@@ -52,7 +52,10 @@ plot_aisles = instacart %>%
     x = "Aisle Name",
     y = "Total Items Ordered",
     caption = "Data from instacart") +
-  scale_y_continuous(limits = c(0, 160000)) +
+  scale_y_continuous(
+    breaks = c(0, 25000, 50000, 75000, 100000, 125000, 150000), 
+    labels = c("0", "25,000", "50,000", "75,000", "100,000", "125,000", "150,000"),
+    limits = c(0, 160000)) +
   theme(text = element_text(size = 7))
 
 plot_aisles + coord_flip()
@@ -105,7 +108,10 @@ top3_products
 apples_and_cream = instacart %>% 
   filter(product_name == "Pink Lady Apples" | product_name == "Coffee Ice Cream") %>% 
   group_by(order_dow, product_name) %>% 
-  summarize(mean_hour_ordered = mean(order_hour_of_day)) %>% 
+  summarize(mean_time = mean(order_hour_of_day)) %>% 
+  separate(
+    mean_time, 
+    into = c("hour", "minute"), sep = 2) %>%
   ungroup(order_dow) %>% 
   mutate(order_dow = recode(order_dow, 
          `0` = "Monday", 
@@ -114,26 +120,33 @@ apples_and_cream = instacart %>%
          `3` = "Thursday",
          `4` = "Friday", 
          `5` = "Saturday",
-         `6` = "Sunday")) %>% 
+         `6` = "Sunday"), 
+      hour = as.numeric(hour),
+      minute = as.numeric(minute),
+      ave_hour = ifelse(hour>12,(hour-12), hour),
+      minute = round((minute*60), digits = 0), 
+      mean_time = 
+        ifelse((hour>12), paste(ave_hour,":",minute, "pm"), 
+      paste(ave_hour, ":",minute, "am"))) %>% 
+  select(order_dow, product_name, mean_time) %>% 
   pivot_wider(
     names_from = "product_name", 
-    values_from = "mean_hour_ordered"
+    values_from = "mean_time"
   ) %>% 
   rename("Day of Week" = order_dow) %>% 
   knitr::kable()
-
 apples_and_cream
 ```
 
 | Day of Week | Coffee Ice Cream | Pink Lady Apples |
-| :---------- | ---------------: | ---------------: |
-| Monday      |         13.77419 |         13.44118 |
-| Tuesday     |         14.31579 |         11.36000 |
-| Wednesday   |         15.38095 |         11.70213 |
-| Thursday    |         15.31818 |         14.25000 |
-| Friday      |         15.21739 |         11.55172 |
-| Saturday    |         12.26316 |         12.78431 |
-| Sunday      |         13.83333 |         11.93750 |
+| :---------- | :--------------- | :--------------- |
+| Monday      | 1 : 46 pm        | 1 : 26 pm        |
+| Tuesday     | 2 : 19 pm        | 11 : 22 am       |
+| Wednesday   | 3 : 23 pm        | 11 : 42 am       |
+| Thursday    | 3 : 19 pm        | 2 : 15 pm        |
+| Friday      | 3 : 13 pm        | 11 : 33 am       |
+| Saturday    | 12 : 16 am       | 12 : 47 am       |
+| Sunday      | 1 : 50 pm        | 11 : 56 am       |
 
 # Problem 2
 
@@ -229,7 +242,7 @@ brfss_excellent = brfss_smart2010  %>%
   ggplot(aes(x = year, y = mean_value)) +
   geom_line(aes(group = locationabbr, color = locationabbr)) +
   labs(
-    title = "Average Data Value by State and Year for Excellent Responses",
+    title = "Average Data Value for Excellent Responses",
     x = "Year",
     y = "Average Data Value",
     caption = "Data from BRFSS") +
@@ -245,6 +258,7 @@ brfss_excellent
 ``` r
 brfss_ny_state = brfss_smart2010 %>% 
   filter((year == 2010 | year == 2006) & locationabbr == "NY") %>% 
+  mutate(locationdesc = substr(locationdesc, 6, 10000)) %>% 
   ggplot(aes(x = locationdesc, y = data_value, fill = response)) + 
   geom_bar(stat = "identity", position = "dodge") +
   facet_grid(~year) +
@@ -362,8 +376,8 @@ activity_plot = accel_data %>%
   group_by(activity_minute, day) %>% 
   summarize(mean_activity = mean(activity_count)) %>% 
 ggplot(aes(x = activity_minute, y = mean_activity)) +
-  geom_line(aes(color = day), alpha = 0.5) +
-  geom_smooth(se = FALSE, alpha = 0.5) +
+  geom_line(aes(color = day), alpha = 0.4) +
+  geom_smooth(se = FALSE, alpha = 0.4) +
   labs(
     title = "Activity Counts for Mintes in 24-hour Period",
     x = "Minute",
@@ -371,7 +385,11 @@ ggplot(aes(x = activity_minute, y = mean_activity)) +
     caption = "Data from the Advanced Cardiac Care 
     Center of Columbia University Medical Center"
   ) +
-  scale_color_hue(name = "Day of Week")
+  scale_color_hue(name = "Day of Week") +
+   scale_x_continuous(
+    breaks = c(0, 180, 360, 540, 720, 900, 1080, 1260, 1440), 
+    labels = c("00:00","03:00", "06:00", "09:00","12:00", "15:00", "18:00", "21:00", "24:00"),
+    limits = c(0, 1440))
 
 activity_plot
 ```
@@ -379,3 +397,8 @@ activity_plot
     ## `geom_smooth()` using method = 'gam' and formula 'y ~ s(x, bs = "cs")'
 
 ![](HW3_files/figure-gfm/unnamed-chunk-12-1.png)<!-- -->
+
+  - The lowest activity points are around 3:00 and 24:00, while the
+    highest activity points occur around 10:00 and 21:00 across all
+    days. There are peaks at 10:00 on Sundays and 21:00 on Fridays close
+    to 2,000. But on average, the activity count stays under 500.
