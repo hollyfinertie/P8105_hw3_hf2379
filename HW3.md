@@ -9,14 +9,14 @@ Holly Finertie
 library(tidyverse)
 ```
 
-    ## ── Attaching packages ────────────────────────────────────────────── tidyverse 1.2.1 ──
+    ## ── Attaching packages ───────────────────────────────────── tidyverse 1.2.1 ──
 
     ## ✔ ggplot2 3.2.1     ✔ purrr   0.3.2
     ## ✔ tibble  2.1.3     ✔ dplyr   0.8.3
     ## ✔ tidyr   1.0.0     ✔ stringr 1.4.0
     ## ✔ readr   1.3.1     ✔ forcats 0.4.0
 
-    ## ── Conflicts ───────────────────────────────────────────────── tidyverse_conflicts() ──
+    ## ── Conflicts ──────────────────────────────────────── tidyverse_conflicts() ──
     ## ✖ dplyr::filter() masks stats::filter()
     ## ✖ dplyr::lag()    masks stats::lag()
 
@@ -25,14 +25,14 @@ library(p8105.datasets)
 data("instacart")
 ```
 
-### Description of Instacart Data Set:
+### Description of Instacart Data Set
 
-This data set contains `1384617 observations` and `15 variables`
-describing order information like time and day order was placed,
-products ordered, aisle where products are located, and days since last
-order was placed per user id. For example, the individual with user id 5
-ordered 9 items of which most were from the produce department. They
-placed this order 6 days after their last order.
+This data set “Instacart” contains `1384617 observations` and `15
+variables` describing order information like time and day order was
+placed, products ordered, aisle where products are located, and days
+since last order was placed per user id. For example, the individual
+with user id 5 ordered 9 items of which most were from the produce
+department. They placed this order 6 days after their last order.
 
 In total, there are `134 aisles` and the most ordered items are from the
 `fresh vegetables aisle`.
@@ -45,7 +45,7 @@ plot_aisles = instacart %>%
   filter(n_aisle > 10000) %>% 
   arrange((n_aisle)) %>% 
   ggplot(aes(x = reorder(aisle, -n_aisle), y = n_aisle)) +
-  geom_bar(stat = "identity") + 
+  geom_bar(stat = "identity", fill = "seagreen4") + 
   geom_text(aes(label = n_aisle), hjust = -0.05, size = 1.5) +
   labs(
     title = "Number of Items Ordered in Aisles",
@@ -56,7 +56,7 @@ plot_aisles = instacart %>%
     breaks = c(0, 25000, 50000, 75000, 100000, 125000, 150000), 
     labels = c("0", "25,000", "50,000", "75,000", "100,000", "125,000", "150,000"),
     limits = c(0, 160000)) +
-  theme(text = element_text(size = 7))
+  theme(text = element_text(size = 6))
 
 plot_aisles + coord_flip()
 ```
@@ -72,41 +72,37 @@ top3_products = instacart %>%
     aisle == "baking ingredients" | 
     aisle == "dog food care" | 
     aisle == "packaged vegetables fruits") %>% 
+  mutate(aisle = str_to_title(aisle)) %>% 
   group_by(aisle) %>% 
   count(product_name, name = "n_product") %>% 
   filter(min_rank(desc(n_product)) < 4) %>% 
   arrange(desc(n_product)) %>%
   mutate(
-    product_name = str_to_lower(product_name), 
-    "Rank" = row_number()) %>%
-  rename(
-    "Aisle Name" = aisle,
-    "Product Name" = product_name, 
-    "Count" = n_product
+    "Rank" = row_number(),
+    n_product = paste(product_name, n_product, sep = ", n = ")) %>% 
+  select( "Rank", "aisle", "n_product") %>% 
+  pivot_wider(
+    names_from = "aisle", 
+    values_from = "n_product"
   ) %>% 
-  select( "Rank", everything()) %>% 
   knitr::kable()
 
 top3_products
 ```
 
-| Rank | Aisle Name                 | Product Name                                  | Count |
-| ---: | :------------------------- | :-------------------------------------------- | ----: |
-|    1 | packaged vegetables fruits | organic baby spinach                          |  9784 |
-|    2 | packaged vegetables fruits | organic raspberries                           |  5546 |
-|    3 | packaged vegetables fruits | organic blueberries                           |  4966 |
-|    1 | baking ingredients         | light brown sugar                             |   499 |
-|    2 | baking ingredients         | pure baking soda                              |   387 |
-|    3 | baking ingredients         | cane sugar                                    |   336 |
-|    1 | dog food care              | snack sticks chicken & rice recipe dog treats |    30 |
-|    2 | dog food care              | organix chicken & brown rice recipe           |    28 |
-|    3 | dog food care              | small dog biscuits                            |    26 |
+| Rank | Packaged Vegetables Fruits     | Baking Ingredients         | Dog Food Care                                         |
+| ---: | :----------------------------- | :------------------------- | :---------------------------------------------------- |
+|    1 | Organic Baby Spinach, n = 9784 | Light Brown Sugar, n = 499 | Snack Sticks Chicken & Rice Recipe Dog Treats, n = 30 |
+|    2 | Organic Raspberries, n = 5546  | Pure Baking Soda, n = 387  | Organix Chicken & Brown Rice Recipe, n = 28           |
+|    3 | Organic Blueberries, n = 4966  | Cane Sugar, n = 336        | Small Dog Biscuits, n = 26                            |
 
 ### Mean Time of Day Pink Lady Apples and Coffee Ice Cream Are Ordered by Day
 
 ``` r
 apples_and_cream = instacart %>% 
-  filter(product_name == "Pink Lady Apples" | product_name == "Coffee Ice Cream") %>% 
+  filter(
+    product_name == "Pink Lady Apples" | 
+    product_name == "Coffee Ice Cream") %>% 
   group_by(order_dow, product_name) %>% 
   summarize(mean_time = mean(order_hour_of_day)) %>% 
   separate(
@@ -114,20 +110,17 @@ apples_and_cream = instacart %>%
     into = c("hour", "minute"), sep = 2) %>%
   ungroup(order_dow) %>% 
   mutate(order_dow = recode(order_dow, 
-         `0` = "Monday", 
-         `1` = "Tuesday", 
-         `2` = "Wednesday", 
-         `3` = "Thursday",
-         `4` = "Friday", 
-         `5` = "Saturday",
-         `6` = "Sunday"), 
+         `0` = "Sunday",
+         `1` = "Monday", 
+         `2` = "Tuesday", 
+         `3` = "Wednesday", 
+         `4` = "Thursday",
+         `5` = "Friday", 
+         `6` = "Saturday"), 
       hour = as.numeric(hour),
       minute = as.numeric(minute),
-      ave_hour = ifelse(hour>12,(hour-12), hour),
       minute = round((minute*60), digits = 0), 
-      mean_time = 
-        ifelse((hour>12), paste(ave_hour,":",minute, "pm"), 
-      paste(ave_hour, ":",minute, "am"))) %>% 
+      mean_time = paste(hour, minute, sep = ":")) %>% 
   select(order_dow, product_name, mean_time) %>% 
   pivot_wider(
     names_from = "product_name", 
@@ -135,18 +128,21 @@ apples_and_cream = instacart %>%
   ) %>% 
   rename("Day of Week" = order_dow) %>% 
   knitr::kable()
+
 apples_and_cream
 ```
 
 | Day of Week | Coffee Ice Cream | Pink Lady Apples |
 | :---------- | :--------------- | :--------------- |
-| Monday      | 1 : 46 pm        | 1 : 26 pm        |
-| Tuesday     | 2 : 19 pm        | 11 : 22 am       |
-| Wednesday   | 3 : 23 pm        | 11 : 42 am       |
-| Thursday    | 3 : 19 pm        | 2 : 15 pm        |
-| Friday      | 3 : 13 pm        | 11 : 33 am       |
-| Saturday    | 12 : 16 am       | 12 : 47 am       |
-| Sunday      | 1 : 50 pm        | 11 : 56 am       |
+| Sunday      | 13:46            | 13:26            |
+| Monday      | 14:19            | 11:22            |
+| Tuesday     | 15:23            | 11:42            |
+| Wednesday   | 15:19            | 14:15            |
+| Thursday    | 15:13            | 11:33            |
+| Friday      | 12:16            | 12:47            |
+| Saturday    | 13:50            | 11:56            |
+
+  - Worked under the assumption that 0 = Sunday\!
 
 # Problem 2
 
@@ -162,74 +158,27 @@ brfss_smart2010 = brfss_smart2010 %>%
   mutate(response = forcats::fct_relevel(response, c("Poor", "Fair","Good", "Very good", "Excellent")))
 ```
 
-### States with 7 or More Observed Locations (2002 and 2010)
+### States with 7 or More Observed Locations in 2002 and 2010
 
 ``` r
-states_2002 = brfss_smart2010 %>% 
-  filter(year == 2002) %>% 
-  group_by(locationabbr) %>% 
+state_locations = brfss_smart2010 %>% 
+  filter(year == 2002 | year == 2010) %>% 
+  group_by(locationabbr, year) %>% 
   summarize(n_location = n_distinct(locationdesc)) %>% 
   filter(n_location >= 7) %>% 
   rename(
     "State" = locationabbr, 
     "Number of Locations" = n_location
-  ) %>% 
-  knitr::kable()
-
-states_2002
+  ) 
 ```
 
-| State | Number of Locations |
-| :---- | ------------------: |
-| CT    |                   7 |
-| FL    |                   7 |
-| MA    |                   8 |
-| NC    |                   7 |
-| NJ    |                   8 |
-| PA    |                  10 |
+  - In 2002, there were 6 states with 7 or more locations were: CT, FL,
+    MA, NC, NJ, PA.
 
-  - Connecticut, Florida, Massachusetts, North Carolina, New Jersey and
-    Pennsylvania had 7 or more locations in 2002.
+  - In 2010, there were 14 states with 7 or more locations were: CA, CO,
+    FL, MA, MD, NC, NE, NJ, NY, OH, PA, SC, TX, WA.
 
-<!-- end list -->
-
-``` r
-states_2010 = brfss_smart2010 %>% 
-  filter(year == 2010) %>% 
-  group_by(locationabbr) %>% 
-  summarize(n_location = n_distinct(locationdesc)) %>% 
-  filter(n_location >= 7) %>% 
-  rename(
-    "State" = locationabbr, 
-    "Number of Locations" = n_location
-  ) %>% 
-  knitr::kable()
-
-states_2010
-```
-
-| State | Number of Locations |
-| :---- | ------------------: |
-| CA    |                  12 |
-| CO    |                   7 |
-| FL    |                  41 |
-| MA    |                   9 |
-| MD    |                  12 |
-| NC    |                  12 |
-| NE    |                  10 |
-| NJ    |                  19 |
-| NY    |                   9 |
-| OH    |                   8 |
-| PA    |                   7 |
-| SC    |                   7 |
-| TX    |                  16 |
-| WA    |                  10 |
-
-  - California, Colorado, Florida, Massachusetts, Maryland, North
-    Carolina, Nebraska, New Jersey, New York, Ohio, Pennsylvania, South
-    Carolina, Texas, and Washington had 7 or more locations in 2010.
-
-### Spaghetti Plot: Average Data Value Over Time by State
+### Spaghetti Plot: Average Percent of Excellent Responses
 
 ``` r
 brfss_excellent = brfss_smart2010  %>% 
@@ -242,39 +191,53 @@ brfss_excellent = brfss_smart2010  %>%
   ggplot(aes(x = year, y = mean_value)) +
   geom_line(aes(group = locationabbr, color = locationabbr)) +
   labs(
-    title = "Average Data Value for Excellent Responses",
+    title = "Average Percent of Respondents with Excellent Overall Health",
     x = "Year",
-    y = "Average Data Value",
+    y = "Average %",
     caption = "Data from BRFSS") +
-  scale_color_hue(name = "State")
+   scale_y_continuous(
+    breaks = c(10, 20, 30), 
+    labels = c("10%", "20%", "30%"),
+    limits = c(10, 30)) +
+  viridis::scale_color_viridis(
+    name = "State", 
+    discrete = TRUE
+  )
 
 brfss_excellent
 ```
 
-![](HW3_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
+![](HW3_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
 
-### 2 Panel Plot for Distribution of Data Values in NY by 2006 and 2010
+### 2 Panel Plot for Distribution of Response Types in NY by 2006 and 2010
 
 ``` r
 brfss_ny_state = brfss_smart2010 %>% 
   filter((year == 2010 | year == 2006) & locationabbr == "NY") %>% 
-  mutate(locationdesc = substr(locationdesc, 6, 10000)) %>% 
+  mutate(
+    locationdesc = substr(locationdesc, 6, 10000)) %>% 
   ggplot(aes(x = locationdesc, y = data_value, fill = response)) + 
   geom_bar(stat = "identity", position = "dodge") +
   facet_grid(~year) +
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) + 
   labs(
-    title = "Distribution of Data Values in NY",
+    title = "Distribution of Responses to Overall Health in NY by County",
     x = "NY County",
-    y = "Data Value",
+    y = "% of Response Types",
     caption = "Data from BRFSS") +
-  scale_color_hue(name = "Response Category")
+   scale_y_continuous(
+    breaks = c(0, 10, 20, 30, 40), 
+    labels = c("0", "10%", "20%", "30%", "40%"),
+    limits = c(0, 42)) +
+  viridis::scale_fill_viridis(
+    name = "Response Type", 
+    discrete = TRUE
+  )
   
-
 brfss_ny_state
 ```
 
-![](HW3_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->
+![](HW3_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
 
 # Problem 3
 
@@ -286,16 +249,13 @@ accel_data = read_csv("./data/accel_data.csv") %>%
   pivot_longer(
     activity_1:activity_1440, 
     names_to = "activity_minute", 
+    names_prefix = "activity_",
     values_to = "activity_count") %>% 
-  separate(
-    activity_minute, 
-    into = c("activity", "activity_minute"), sep = 9) %>% 
   mutate(
     day_type = case_when(
           (day == "Saturday" | day == "Sunday") ~ "Weekend", 
           TRUE ~ "Weekday"), 
-    activity_minute = as.integer(activity_minute)) %>% 
-  select(-activity)
+    activity_minute = as.integer(activity_minute))
 ```
 
     ## Parsed with column specification:
@@ -369,36 +329,38 @@ total_activity
   - I would argue that there are no apparent trends across the total
     activity for 35 days.
 
-### Total Activity over the course of a Day
+### Activity by Minute by Day
 
 ``` r
 activity_plot = accel_data %>% 
   group_by(activity_minute, day) %>% 
   summarize(mean_activity = mean(activity_count)) %>% 
-ggplot(aes(x = activity_minute, y = mean_activity)) +
-  geom_line(aes(color = day), alpha = 0.4) +
-  geom_smooth(se = FALSE, alpha = 0.4) +
+ggplot(aes(x = activity_minute, y = mean_activity, color = day)) +
+  geom_smooth(se = FALSE) +
   labs(
-    title = "Activity Counts for Mintes in 24-hour Period",
+    title = "Activity Count by Day and Minutes in 24-hour Period",
     x = "Minute",
     y = "Activity Count",
     caption = "Data from the Advanced Cardiac Care 
     Center of Columbia University Medical Center"
   ) +
-  scale_color_hue(name = "Day of Week") +
+  viridis::scale_color_viridis(
+    name = "Day of Week", 
+    discrete = TRUE
+  ) +
    scale_x_continuous(
     breaks = c(0, 180, 360, 540, 720, 900, 1080, 1260, 1440), 
     labels = c("00:00","03:00", "06:00", "09:00","12:00", "15:00", "18:00", "21:00", "24:00"),
-    limits = c(0, 1440))
+    limits = c(0, 1440)) 
 
 activity_plot
 ```
 
     ## `geom_smooth()` using method = 'gam' and formula 'y ~ s(x, bs = "cs")'
 
-![](HW3_files/figure-gfm/unnamed-chunk-12-1.png)<!-- -->
+![](HW3_files/figure-gfm/unnamed-chunk-11-1.png)<!-- -->
 
-  - The lowest activity points are around 3:00 and 24:00, while the
-    highest activity points occur around 10:00 and 21:00 across all
-    days. There are peaks at 10:00 on Sundays and 21:00 on Fridays close
-    to 2,000. But on average, the activity count stays under 500.
+  - The lowest activity points for all days are from 2:00-4:00 and at
+    24:00, while the highest activity points occur around 10:00 on
+    Sundays and 21:00 on Fridays. On average, the activity count stays
+    under 500.
