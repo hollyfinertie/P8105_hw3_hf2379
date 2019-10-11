@@ -101,10 +101,10 @@ apples_and_cream = instacart %>%
       mean_time = paste(hour, minute, sep = ":")) %>% 
   select(order_dow, product_name, mean_time) %>% 
   pivot_wider(
-    names_from = "product_name", 
+    names_from = "order_dow", 
     values_from = "mean_time"
   ) %>% 
-  rename("Day of Week" = order_dow) %>% 
+  rename("Product Name" = product_name) %>% 
   knitr::kable()
 
 apples_and_cream
@@ -245,9 +245,9 @@ total_activity
 
 ```{r}
 activity_plot = accel_data %>% 
-  group_by(activity_minute, day) %>% 
-  summarize(mean_activity = mean(activity_count)) %>% 
-ggplot(aes(x = activity_minute, y = mean_activity, color = day)) +
+  group_by(day_id, day, activity_minute) %>% 
+  select(day_id, day, activity_minute, activity_count) %>% 
+ggplot(aes(x = activity_minute, y = activity_count, group = day_id, color = day)) +
   geom_smooth(se = FALSE) +
   labs(
     title = "Activity Count by Day and Minutes in 24-hour Period",
@@ -268,5 +268,5 @@ ggplot(aes(x = activity_minute, y = mean_activity, color = day)) +
 activity_plot
 ```
 
-* The lowest activity points for all days are from 2:00-4:00 and at 24:00, while the highest activity points occur around 10:00 on Sundays and 21:00 on Fridays. On average, the activity count stays under 500. 
+* The lowest activity points for all days are from 2:00-4:00 and at 24:00, while the highest activity points occur around 10:00 on Sundays and 21:00 on Mondays, Fridays, and Saturdays. On average, the activity count stays around 500. 
 

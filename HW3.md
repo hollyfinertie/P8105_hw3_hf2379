@@ -123,24 +123,19 @@ apples_and_cream = instacart %>%
       mean_time = paste(hour, minute, sep = ":")) %>% 
   select(order_dow, product_name, mean_time) %>% 
   pivot_wider(
-    names_from = "product_name", 
+    names_from = "order_dow", 
     values_from = "mean_time"
   ) %>% 
-  rename("Day of Week" = order_dow) %>% 
+  rename("Product Name" = product_name) %>% 
   knitr::kable()
 
 apples_and_cream
 ```
 
-| Day of Week | Coffee Ice Cream | Pink Lady Apples |
-| :---------- | :--------------- | :--------------- |
-| Sunday      | 13:46            | 13:26            |
-| Monday      | 14:19            | 11:22            |
-| Tuesday     | 15:23            | 11:42            |
-| Wednesday   | 15:19            | 14:15            |
-| Thursday    | 15:13            | 11:33            |
-| Friday      | 12:16            | 12:47            |
-| Saturday    | 13:50            | 11:56            |
+| Product Name     | Sunday | Monday | Tuesday | Wednesday | Thursday | Friday | Saturday |
+| :--------------- | :----- | :----- | :------ | :-------- | :------- | :----- | :------- |
+| Coffee Ice Cream | 13:46  | 14:19  | 15:23   | 15:19     | 15:13    | 12:16  | 13:50    |
+| Pink Lady Apples | 13:26  | 11:22  | 11:42   | 14:15     | 11:33    | 12:47  | 11:56    |
 
   - Worked under the assumption that 0 = Sunday\!
 
@@ -333,9 +328,9 @@ total_activity
 
 ``` r
 activity_plot = accel_data %>% 
-  group_by(activity_minute, day) %>% 
-  summarize(mean_activity = mean(activity_count)) %>% 
-ggplot(aes(x = activity_minute, y = mean_activity, color = day)) +
+  group_by(day_id, day, activity_minute) %>% 
+  select(day_id, day, activity_minute, activity_count) %>% 
+ggplot(aes(x = activity_minute, y = activity_count, group = day_id, color = day)) +
   geom_smooth(se = FALSE) +
   labs(
     title = "Activity Count by Day and Minutes in 24-hour Period",
@@ -362,5 +357,5 @@ activity_plot
 
   - The lowest activity points for all days are from 2:00-4:00 and at
     24:00, while the highest activity points occur around 10:00 on
-    Sundays and 21:00 on Fridays. On average, the activity count stays
-    under 500.
+    Sundays and 21:00 on Mondays, Fridays, and Saturdays. On average,
+    the activity count stays around 500.
